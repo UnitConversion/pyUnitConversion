@@ -8,6 +8,7 @@ import logging
 from urllib import urlencode
 from collections import OrderedDict
 from json import JSONDecoder
+from _conf import _conf
 
 class UCClient(object):
     '''
@@ -17,17 +18,26 @@ class UCClient(object):
     __systemResource = '/system'
     __deviceResource = '/devices'
 
-    def __init__(self, url='http://localhost:8000/magnets'):
+    def __init__(self, url=None):
         '''
         create a client to the unitconversion service
         '''
         try:     
             requests_log = logging.getLogger("requests")
             requests_log.setLevel(logging.DEBUG)
-            self.__url = url
+            self.__url = self.__getDefaultConfig('url', url)
             requests.get(self.__url + self.__systemResource, verify=False, headers=self.__jsonheader).raise_for_status()
         except:
             raise
+        
+    def __getDefaultConfig(self, arg, value):
+        '''
+        If Value is None, this will try to find the value in one of the configuration files
+        '''
+        if value == None and _conf.has_option('DEFAULT', arg):
+            return _conf.get('DEFAULT', arg)
+        else:
+            return value
     
     def listSystems(self):
         '''
