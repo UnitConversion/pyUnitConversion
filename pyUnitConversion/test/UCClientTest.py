@@ -6,7 +6,7 @@ Created on Feb 28, 2013
 import unittest
 from pyUnitConversion import *
 from exceptions import AttributeError
-from pyUnitConversion.UCClient import ConversionAlgorithm
+from pyUnitConversion.UCClient import ConversionAlgorithm, Conversion
 
 class TestClientCreation(unittest.TestCase):
 
@@ -126,7 +126,7 @@ class TestAPI(unittest.TestCase):
         self.assertEqual(len(devices), 3, 'expected 3 match for device with name SH1G2C30A found ' + str(len(devices)))
         self.assertListEqual(expectedDevices, devices, 'Failed to query for devices by name pattern')
 
-class TestConversion(unittest.TestCase):
+class TestConversionInfo(unittest.TestCase):
     
     def testConversion(self):
         '''
@@ -204,7 +204,62 @@ class TestConversion(unittest.TestCase):
                                                                                                        auxInfo=0)},
                                                                  description='average solenoid measurement data')}
         self.assertEqual(conversionMuniconvChain, expectedConversionMuniconvChain, 'Converion for municonvChain does not match expected value')        
+
+class TestConversionResult(unittest.TestCase):
+    
+    def testConversionResult(self):
+        '''
+        test behaviour 
+        acceptable key words to identify device(s):
+         -- id: inventory id
+         or
+         -- name: field name/device name
+         
+        for conversion:
+         -- from (i, b, k)
+         -- to (i, b, k)
+         -- value
+         -- unit
+         -- energy
+     
+        from=i
+        to-b
+        value=5
         
+        {"LN-SO5": 
+            {"municonvChain": 
+                {"standard": 
+                    {"conversionResult": 
+                        {"message": "successfully convert current to magnetic field.", 
+                         "value": -0.0023332866432600003, 
+                         "unit": "T"}
+                    }
+                }, 
+            "municonv": 
+                {"standard": 
+                    {"conversionResult": 
+                        {"message": "successfully convert current to magnetic field.", 
+                         "value": 0.0012539781911950001, 
+                         "unit": "T"}
+                        }
+                    }
+                }
+            }
+        '''
+        client = UCClient(url='http://localhost:8000/magnets')
+        expectedResult = [Device(name='LN-SO5', 
+                                 conversionInfo={'municonvChain':{'standard':Conversion(conversionResult=ConversionResult(message='successfully convert current to magnetic field.',
+                                                                                                                          value=-0.0023332866432600003, 
+                                                                                                                          unit='T'))},
+                                                 'municonv':{'standard':Conversion(conversionResult=ConversionResult(message='successfully convert current to magnetic field.',
+                                                                                                                     value=0.0012539781911950001,
+                                                                                                                     unit='T'))}})]
+        result = client.getConversionResult(name='LN-SO5', initialUnit='i', to='b', value=5)
+        self.assertEqual(len(result), 1, 'Failed to get the appropriate conversion result for LN-SO5')
+        self.assertEqual(expectedResult, result, 'Failed to get expected unit conversion result for LN-SO5')
+        
+                
+
 class TestDevice(unittest.TestCase):
     '''
     Example list of Devices

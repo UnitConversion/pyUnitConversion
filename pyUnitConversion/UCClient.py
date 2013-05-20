@@ -73,7 +73,45 @@ class UCClient(object):
             device['conversionInfo'] = jsonDevices[deviceName]
             d = DeviceDecoder().dictToDeviceDecoder(device)
             result.append(d)
-        print result
+        return result
+    
+    def getConversionResult(self, **kwds):
+        '''
+        acceptable key words to identify device(s):
+         -- id: inventory id
+         or
+         -- name: field name/device name
+         
+        for conversion:
+         -- initialUnit (i, b, k)
+         -- to (i, b, k)
+         -- value
+         -- unit
+         -- energy
+        '''
+        
+        if 'name' not in kwds and 'id' not in kwds:
+            raise ValueError('both name and id cannot be None')
+        if 'initialUnit' not in kwds:
+            raise ValueError('specify the unit" to convert from using keyword "initialUnit"')
+        else:
+            kwds['from'] = kwds.pop('initialUnit')
+        if 'to' not in kwds:
+            raise ValueError('specify the unit to convert to using keyword "to"')
+        if 'value' not in kwds:
+            raise ValueError('specify the initial value to be converted using keyword "value"')
+        resp = requests.get(self.url + self.__conversionResource + '?' + urlencode(OrderedDict(kwds)),
+                           verify=False,
+                           headers=self.__jsonheader)
+        resp.raise_for_status()
+        jsonDevices = resp.json()
+        result = []
+        for deviceName in jsonDevices:
+            device = {}
+            device['name'] = deviceName
+            device['conversionInfo'] = jsonDevices[deviceName]
+            d = DeviceDecoder().dictToDeviceDecoder(device)
+            result.append(d)
         return result
     
 class Device(object):
@@ -159,7 +197,6 @@ class DeviceDecoder(JSONDecoder):
             for a in jsonConversionInfo:
                 conversions = {}
                 for b in jsonConversionInfo[a]:
-                    print jsonConversionInfo[a][b]
                     conversions[b] = ConversionDecoder().dictToConversion(jsonConversionInfo[a][b])
                 conversionInfo[a] = copy(conversions) 
             return Device(name=d.pop('name', None),
@@ -371,11 +408,11 @@ class ConversionDecoder(JSONDecoder):
     
     def dictToConversion(self, d):
         if d:
-            print d.get('conversionResult')
             jsonAlgorithms = d.pop('algorithms', None)
             algorithms = {}
-            for jsonAlgorithmKey in jsonAlgorithms:
-                algorithms[jsonAlgorithmKey] = ConversionAlgorithmDecoder().dictToConversionAlgorithm(jsonAlgorithms[jsonAlgorithmKey])
+            if jsonAlgorithms:                
+                for jsonAlgorithmKey in jsonAlgorithms:
+                    algorithms[jsonAlgorithmKey] = ConversionAlgorithmDecoder().dictToConversionAlgorithm(jsonAlgorithms[jsonAlgorithmKey])
             return Conversion(
                                    measurementData=MeasurementDataDecoder().dictToMeasurementData(d.pop('measurementData', None)),
                                    designLength=d.pop('designLength', None),
