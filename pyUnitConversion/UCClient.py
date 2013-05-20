@@ -50,6 +50,8 @@ class UCClient(object):
         return resp.json()
         
     def findDevices(self, **kwds):
+        '''
+        '''
         resp = requests.get(self.url + self.__deviceResource + '?' + urlencode(OrderedDict(kwds)),
                             verify=False,
                             headers=self.__jsonheader)
@@ -57,19 +59,22 @@ class UCClient(object):
         return DeviceDecoder().decode(resp.content)
     
     def getConversionData(self, **kwds):
+        '''
+        '''
         resp = requests.get(self.url + self.__conversionResource + '?' + urlencode(OrderedDict(kwds)),
                             verify=False,
                             headers=self.__jsonheader)
         resp.raise_for_status()
         jsonDevices = resp.json()
+        result = []
         for deviceName in jsonDevices:
             device = {}
             device['name'] = deviceName
             device['conversionInfo'] = jsonDevices[deviceName]
             d = DeviceDecoder().dictToDeviceDecoder(device)
-            print d
-        print device
-        return DeviceDecoder().decode(resp.content)
+            result.append(d)
+        print result
+        return result
     
 class Device(object):
     '''
@@ -148,15 +153,12 @@ class DeviceDecoder(JSONDecoder):
         JSONDecoder.__init__(self, object_hook=self.dictToDeviceDecoder)
                          
     def dictToDeviceDecoder(self, d):
-        print d
         if d:
             jsonConversionInfo = d.pop('conversionInfo', {})
             conversionInfo = {}
             for a in jsonConversionInfo:
-                print 'a:', a
                 conversions = {}
                 for b in jsonConversionInfo[a]:
-                    print 'b:', b
                     print jsonConversionInfo[a][b]
                     conversions[b] = ConversionDecoder().dictToConversion(jsonConversionInfo[a][b])
                 conversionInfo[a] = copy(conversions) 
@@ -175,16 +177,16 @@ class DeviceDecoder(JSONDecoder):
 class MeasurementData(object):
 
     def __init__(self,
-                 direction=[],
-                 current=[],
-                 currentError=[],
+                 direction=None,
+                 current=None,
+                 currentError=None,
                  currentUnit=None,
-                 field=[],
-                 fieldError=[],
+                 field=None,
+                 fieldError=None,
                  fieldUnit=None,
                  magneticLength=None,
                  averageLength=None,
-                 runNumber=[],
+                 runNumber=None,
                  serialNumber=None,
                  referenceDraw=None,
                  aliasName=None,
@@ -202,6 +204,7 @@ class MeasurementData(object):
         self.field = field
         self.fieldError = fieldError
         self.fieldUnit = fieldUnit
+        self.magneticLength = magneticLength
         self.averageLength = averageLength
         self.runNumber = runNumber
         self.serialNumber = serialNumber
@@ -214,6 +217,12 @@ class MeasurementData(object):
         self.magneticRigidity = magneticRigidity
         self.magneticRigidityUnit = magneticRigidityUnit
         self.conditionCurrent = conditionCurrent
+    
+    def __cmp__(self, other):  
+        if other == None:
+            return 1
+        return cmp((self.direction, self.current, self.currentError, self.currentUnit, self.field, self.fieldError, self.fieldUnit, self.magneticLength, self.averageLength, self.runNumber, self.serialNumber, self.referenceDraw, self.aliasName, self.vendor, self.integralTransferFunction, self.referenceRadius, self.description, self.magneticRigidity, self.magneticRigidityUnit, self.conditionCurrent),
+                   (other.direction, other.current, other.currentError, other.currentUnit, other.field, other.fieldError, other.fieldUnit, other.magneticLength, other.averageLength, other.runNumber, other.serialNumber, other.referenceDraw, other.aliasName, other.vendor, other.integralTransferFunction, other.referenceRadius, other.description, other.magneticRigidity, other.magneticRigidityUnit, other.conditionCurrent))
 
 class MeasurementDataDecoder(JSONDecoder):
     
@@ -223,29 +232,30 @@ class MeasurementDataDecoder(JSONDecoder):
     def dictToMeasurementData(self, d):
         if d:
             return MeasurementData(
-                                      direction=d.pop('direction', None),
-                                      current=d.pop('current', None),
-                                      currentError=d.pop('currentError', None),
-                                      currentUnit=d.pop('currentUnit', None),
-                                      field=d.pop('field', None),
-                                      fieldError=d.pop('fieldError', None),
-                                      fieldUnit=d.pop('fieldUnit', None),
-                                      averageLength=d.pop('averageLength', None),
-                                      runNumber=d.pop('runNumber', None),
-                                      serialNumber=d.pop('serialNumber', None),
-                                      referenceDraw=d.pop('referenceDraw', None),
-                                      aliasName=d.pop('aliasName', None),
-                                      vendor=d.pop('vendor', None),
-                                      integralTransferFunction=d.pop('integralTransferFunction', None),
-                                      referenceRadius=d.pop('referenceRadius', None),
-                                      description=d.pop('description', None),
-                                      magneticRigidity=d.pop('magneticRigidity', None),
-                                      magneticRigidityUnit=d.pop('magneticRigidityUnit', None),
-                                      conditionCurrent=d.pop('conditionCurrent', None)
-                                      )
+                                   direction=d.pop('direction', None),
+                                   current=d.pop('current', None),
+                                   currentError=d.pop('currentError', None),
+                                   currentUnit=d.pop('currentUnit', None),
+                                   field=d.pop('field', None),
+                                   fieldError=d.pop('fieldError', None),
+                                   fieldUnit=d.pop('fieldUnit', None),
+                                   magneticLength=d.pop('magneticLength', None),
+                                   averageLength=d.pop('averageLength', None),
+                                   runNumber=d.pop('runNumber', None),
+                                   serialNumber=d.pop('serialNumber', None),
+                                   referenceDraw=d.pop('referenceDraw', None),
+                                   aliasName=d.pop('aliasName', None),
+                                   vendor=d.pop('vendor', None),
+                                   integralTransferFunction=d.pop('integralTransferFunction', None),
+                                   referenceRadius=d.pop('referenceRadius', None),
+                                   description=d.pop('description', None),
+                                   magneticRigidity=d.pop('magneticRigidity', None),
+                                   magneticRigidityUnit=d.pop('magneticRigidityUnit', None),
+                                   conditionCurrent=d.pop('conditionCurrent', None)
+                                   )
         else:
-            return None
-        
+            return None    
+            
 class ConversionAlgorithm():
     '''
     private int algorithmId;
@@ -267,6 +277,12 @@ class ConversionAlgorithm():
         self.auxInfo = auxInfo
         self.initialUnit = initialUnit
         self.resultUnit = resultUnit
+        
+    def __cmp__(self, *arg, **kwargs):  
+        if arg[0] == None:
+            return 1
+        return cmp((self.algorithmId, self.function, self.auxInfo, self.initialUnit, self.resultUnit),
+                   (arg[0].algorithmId, arg[0].function, arg[0].auxInfo, arg[0].initialUnit, arg[0].resultUnit))
         
 class ConversionAlgorithmDecoder(JSONDecoder):
     '''
@@ -342,6 +358,24 @@ class Conversion():
         self.algorithms = algorithms
         self.description = description
         self.conversionResult = conversionResult
+    
+    def __cmp__(self, *arg, **kwargs):  
+        if arg[0] == None:
+            return 1 
+        if self.measurementData:
+            return cmp((self.measurementData), (arg[0].measurementData))
+        if self.designLength:
+            return cmp((self.designLength), (arg[0].designLength))
+        if self.defaultEnergy:
+            return cmp((self.defaultEnergy), (arg[0].defaultEnergy))
+        if self.realEnergy:
+            return cmp((self.realEnergy), (arg[0].realEnergy))
+        if self.algorithms:
+            return cmp((self.algorithms), (arg[0].algorithms))
+        if self.description:
+            return cmp((self.description), (arg[0].description))
+        if self.conversionResult:
+            return cmp((self.conversionResult), (arg[0].conversionResult))
         
 class ConversionDecoder(JSONDecoder):
     def __init__(self):
@@ -350,12 +384,16 @@ class ConversionDecoder(JSONDecoder):
     def dictToConversion(self, d):
         if d:
             print d.get('conversionResult')
+            jsonAlgorithms = d.pop('algorithms', None)
+            algorithms = {}
+            for jsonAlgorithmKey in jsonAlgorithms:
+                algorithms[jsonAlgorithmKey] = ConversionAlgorithmDecoder().dictToConversionAlgorithm(jsonAlgorithms[jsonAlgorithmKey])
             return Conversion(
                                    measurementData=MeasurementDataDecoder().dictToMeasurementData(d.pop('measurementData', None)),
                                    designLength=d.pop('designLength', None),
                                    defaultEnergy=d.pop('defaultEnergy', None),
                                    realEnergy=d.pop('realEnergy', None),
-                                   algorithms=ConversionAlgorithmDecoder().dictToConversionAlgorithm(d.pop('algorithms', None)),
+                                   algorithms=algorithms,
                                    description=d.pop('description', None),
                                    conversionResult=ConversionResultDecoder().dictToConversionResult(d.pop('conversionResult', None))
                                    )
