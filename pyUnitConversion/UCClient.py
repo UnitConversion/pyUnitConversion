@@ -51,6 +51,13 @@ class UCClient(object):
         
     def findDevices(self, **kwds):
         '''
+        search for devices using any of the acceptable key words:
+        -- name
+        -- cmpnt_type
+        -- system
+        -- serialno
+        
+        return [Devices]
         '''
         resp = requests.get(self.url + self.__deviceResource + '?' + urlencode(OrderedDict(kwds)),
                             verify=False,
@@ -60,6 +67,13 @@ class UCClient(object):
     
     def getConversionData(self, **kwds):
         '''
+        search for devices along with their conversion data using any of the acceptable key words:
+        -- name
+        -- cmpnt_type
+        -- system
+        -- serialno
+        
+        return [Devices]
         '''
         resp = requests.get(self.url + self.__conversionResource + '?' + urlencode(OrderedDict(kwds)),
                             verify=False,
@@ -116,15 +130,20 @@ class UCClient(object):
     
 class Device(object):
     '''
-    private String name;
-    private String system;
-    private int installId;
-    private int inventoryId;
-    private String componentTypeName;
-    private String typeDescription;
-    private String vendor;
-    private int serialNumber;
-    private Map<String, Map<String, Conversion>> conversionInfo;
+    An object to represent a devices which consists of the following optinal parameter
+    String name
+    String system
+    int installId
+    int inventoryId
+    String componentTypeName
+    String typeDescription
+    String vendor
+    int serialNumber
+    
+    finally a dictionary which stores the various conversion related information 
+    associated with this device 
+    
+    conversionInfo = {'municonv/municonvchain':{'standard/complex':Conversion}}
     '''
         
     def __init__(self,
@@ -212,6 +231,9 @@ class DeviceDecoder(JSONDecoder):
             return None
         
 class MeasurementData(object):
+    '''
+    An object which represents the Measurement data associated with a Device
+    '''
 
     def __init__(self,
                  direction=None,
@@ -295,11 +317,13 @@ class MeasurementDataDecoder(JSONDecoder):
             
 class ConversionAlgorithm():
     '''
-    private int algorithmId;
-    private String function;
-    private int auxInfo;
-    private String initialUnit;
-    private String resultUnit;
+    A conversion algorithm consists of the following options parameters
+    
+    int algorithmId
+    String function
+    int auxInfo
+    String initialUnit
+    String resultUnit
     '''
     
     def __init__(self,
@@ -340,12 +364,15 @@ class ConversionAlgorithmDecoder(JSONDecoder):
             return None
         
 class ConversionResult():
+    '''
+    An object that represents the conversion result
+    String message
+    double value
+    String unit
+    '''
     
     def __init__(self, message=None, value=None, unit=None):
-        '''
-        private String message;
-        private double value;
-        private String unit;
+        '''        
         '''
         self.message = message
         self.value = value
@@ -368,15 +395,24 @@ class ConversionResultDecoder(JSONDecoder):
         
 class Conversion():
     '''
-    private MeasurementData measurementData;
+    An object represents the various conversion information associated with a device
+    
+    MeasurementData measurementData
+    
     // These are design values    
-    private Double designLength;
-    private Double defaultEnergy;
-    private Double realEnergy;
-    private Map<String, ConversionAlgorithm> algorithms = Collections
-        .emptyMap();
-    private String description;
-    private ConversionResult conversionResult;
+    Double designLength
+    Double defaultEnergy
+    Double realEnergy
+    
+    // A dict of the various a conversions defined for the device 
+    // and the algorithms associated with them
+    e.g.
+    algorithms {'i2b':ConversionAlgorithm,'b2k':ConversionAlgorithm} 
+        
+    String description
+    
+    // The result of the requested conversion
+    ConversionResult conversionResult
     '''
     
     def __init__(self,
