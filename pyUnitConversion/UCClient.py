@@ -359,23 +359,11 @@ class Conversion():
         self.description = description
         self.conversionResult = conversionResult
     
-    def __cmp__(self, *arg, **kwargs):  
-        if arg[0] == None:
+    def __cmp__(self, other):  
+        if other == None:
             return 1 
-        if self.measurementData:
-            return cmp((self.measurementData), (arg[0].measurementData))
-        if self.designLength:
-            return cmp((self.designLength), (arg[0].designLength))
-        if self.defaultEnergy:
-            return cmp((self.defaultEnergy), (arg[0].defaultEnergy))
-        if self.realEnergy:
-            return cmp((self.realEnergy), (arg[0].realEnergy))
-        if self.algorithms:
-            return cmp((self.algorithms), (arg[0].algorithms))
-        if self.description:
-            return cmp((self.description), (arg[0].description))
-        if self.conversionResult:
-            return cmp((self.conversionResult), (arg[0].conversionResult))
+        return cmp((self.measurementData, self.designLength, self.defaultEnergy, self.realEnergy, self.algorithms, self.description, self.conversionResult),
+                   (other.measurementData, other.designLength, other.defaultEnergy, other.realEnergy, other.algorithms, other.description, other.conversionResult))
         
 class ConversionDecoder(JSONDecoder):
     def __init__(self):

@@ -6,6 +6,7 @@ Created on Feb 28, 2013
 import unittest
 from pyUnitConversion import *
 from exceptions import AttributeError
+from pyUnitConversion.UCClient import ConversionAlgorithm
 
 class TestClientCreation(unittest.TestCase):
 
@@ -196,7 +197,13 @@ class TestConversion(unittest.TestCase):
                                                 description='individual solenoid measurement data')}
         self.assertEqual(conversionMuniconv, expectedConversionMuniconv, 'Converion for municonv does not match expected value')
         conversionMuniconvChain = conversionInfo['municonvChain']
-        
+        expectedConversionMuniconvChain = {'standard':Conversion(algorithms={"i2b":ConversionAlgorithm(function="-0.000423222575196*input -0.00021717376728",
+                                                                                                       initialUnit='A',
+                                                                                                       algorithmId=0,
+                                                                                                       resultUnit='T',
+                                                                                                       auxInfo=0)},
+                                                                 description='average solenoid measurement data')}
+        self.assertEqual(conversionMuniconvChain, expectedConversionMuniconvChain, 'Converion for municonvChain does not match expected value')        
         
 class TestDevice(unittest.TestCase):
     '''
@@ -297,8 +304,6 @@ class TestMeasurementData(unittest.TestCase):
                                                 currentError=['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
                                                 fieldUnit="T")
         measurementData = MeasurementDataDecoder().dictToMeasurementData({u'direction': [u'na', u'na', u'na', u'na', u'na', u'na', u'na', u'na', u'na', u'na', u'na', u'na', u'na', u'na', u'na', u'na', u'na', u'na', u'na', u'na', u'na'], u'currentUnit': u'A', u'magneticLength': [u'', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'', u''], u'serialNumber': 53, u'current': [0.0, 5.0, 10.0, 15.0, 20.0, 25.0, 30.0, 35.0, 40.0, 45.0, 50.0, 55.0, 60.0, 65.0, 70.0, 75.0, 80.0, 85.0, 90.0, 95.0, 100.0], u'field': [-0.000132, -0.001228, -0.002381, -0.003523, -0.004655, -0.005798, -0.00693, -0.00806, -0.009285, -0.010423, -0.011546, -0.012694, -0.013817, -0.014941, -0.016098, -0.017217, -0.018358, -0.019476, -0.020613, -0.021764, -0.022898], u'fieldError': [u'', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'', u''], u'currentError': [u'', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'', u''], u'fieldUnit': u'T'})
-        if expectedMeasurementData == measurementData:
-            print 'equal'
         self.assertEqual(measurementData, expectedMeasurementData, 'failed to parse MeasurementData')      
 
 
